@@ -27,6 +27,7 @@ const Dashboard = () => {
 
   const api = localStorage.getItem('client_api');
   const id = localStorage.getItem('client_id');
+  const token = localStorage.getItem("client_authToken");
 
   const removeAnimationScript = () => {
     const node = document.getElementById('aniScript');
@@ -36,32 +37,37 @@ const Dashboard = () => {
     let intervalId;
     const fetchDta = async () => {
       await axios
-        .get('../dashboard.php', {
+        .get("../dashboard.php", {
           params: { api: api },
+          headers: { Authorization: token },
         })
-        .then(result => {
+        .then((result) => {
+          if (result.data.error === "Expired token") {
+            localStorage.clear();
+            navigate("/login");
+          }
           const newData = result.data;
           if (JSON.stringify(newData) !== JSON.stringify(res)) {
             setRes(newData);
             let letter = newData.letter;
-            if (letter === 'A') {
+            if (letter === "A") {
               setAqiImg(A);
-            } else if (letter === 'B') {
+            } else if (letter === "B") {
               setAqiImg(B);
-            } else if (letter === 'C') {
+            } else if (letter === "C") {
               setAqiImg(C);
-            } else if (letter === 'D') {
+            } else if (letter === "D") {
               setAqiImg(D);
-            } else if (letter === 'F') {
+            } else if (letter === "F") {
               setAqiImg(F);
             }
-            localStorage.setItem('client_machine', newData.machine);
-            localStorage.setItem('client_date', newData.date);
-            localStorage.setItem('client_user', newData.customer);
-            setDisplay(newData.humHdnStatus ? 'flex' : 'none');
+            localStorage.setItem("client_machine", newData.machine);
+            localStorage.setItem("client_date", newData.date);
+            localStorage.setItem("client_user", newData.customer);
+            setDisplay(newData.humHdnStatus ? "flex" : "none");
           }
         })
-        .catch(error => console.log(error));
+        .catch((error) => console.log(error));
     };
     fetchDta();
     intervalId = setInterval(fetchDta, 1000);
@@ -69,12 +75,20 @@ const Dashboard = () => {
   }, [api, res]);
   useEffect(() => {
     axios
-      .get(`../advertisment.php?cid=${id}&api=${api}`)
-      .then(res => {
-        res.data.path ? setAdImg(axios.defaults.baseURL + '/' + res.data.path) : setAdImg(Ad);
+      .get(`../advertisment.php?cid=${id}&api=${api}`, {
+        headers: { Authorization: token },
+      })
+      .then((res) => {
+        if (res.data.error === "Expired token") {
+          localStorage.clear();
+          navigate("/login");
+        }
+        res.data.path
+          ? setAdImg(axios.defaults.baseURL + "/" + res.data.path)
+          : setAdImg(Ad);
         setTime(res.data.time);
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
     const node = document.createElement('script');
     node.id = 'aniScript';
     node.src = 'js/script.js';

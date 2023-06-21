@@ -14,20 +14,27 @@ export default function Machines() {
   const [machines, setMachines] = useState([]);
   const navigate = useNavigate();
   const user = localStorage.getItem('client_id');
+  const token = localStorage.getItem("client_authToken");
+
   useEffect(() => {
     let intervalId;
     const fetchData = async () => {
       await axios
-        .get('miniMachines.php', {
+        .get("miniMachines.php", {
           params: { cid: user },
+          headers: { Authorization: token },
         })
-        .then(result => {
+        .then((result) => {
+          if (result.data.error === "Expired token") {
+            localStorage.clear();
+            navigate("/login");
+          }
           const newData = result.data;
           if (JSON.stringify(newData) !== JSON.stringify(machines)) {
             setMachines(newData);
           }
         })
-        .catch(error => console.log(error));
+        .catch((error) => console.log(error));
     };
     fetchData();
     intervalId = setInterval(fetchData, 1000);
@@ -56,7 +63,7 @@ export default function Machines() {
         </Toolbar>
       </AppBar>
       <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-        {machines.map(item => (
+        {machines?.map(item => (
           <MiniMachine
             onClick={handleMachineClick}
             key={item.id}
@@ -64,7 +71,7 @@ export default function Machines() {
             name={item.name}
             api={item.api}
           />
-        ))}
+        )) }
       </Box>
     </Box>
   );

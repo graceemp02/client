@@ -77,33 +77,43 @@ const Control = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [alignment, setAlignment] = useState('0');
   const api = localStorage.getItem('client_api');
+  const token = localStorage.getItem("client_authToken");
 
   const pushData = async id => {
     await axios
-      .get('../system.php', {
+      .get("../system.php", {
         params: { api: api, relay: id },
+        headers: { Authorization: token },
       })
-      .then(result => {
-        // console.log(result);
+      .then((result) => {
+      if (result.data.error === "Expired token") {
+        localStorage.clear();
+        navigate("/login");
+      }
       })
-      .catch(error => console.log(error));
+      .catch((error) => console.log(error));
   };
 
   useEffect(() => {
     let intervalId;
     const fetchDta = async () => {
       await axios
-        .get('../system.php', {
+        .get("../system.php", {
           params: { api: api },
+          headers: { Authorization: token },
         })
-        .then(result => {
+        .then((result) => {
+          if (result.data.error === "Expired token") {
+            localStorage.clear();
+            navigate("/login");
+          }
           const newRes = result.data;
           if (JSON.stringify(newRes) !== JSON.stringify(res)) {
             setRes(newRes);
             setAlignment(newRes.aop);
           }
         })
-        .catch(error => console.log(error));
+        .catch((error) => console.log(error));
     };
     fetchDta();
     intervalId = setInterval(fetchDta, 1000);
@@ -125,17 +135,23 @@ const Control = () => {
     formData.append('sot', sotRef.current.value === '' ? res.sot : sotRef.current.value);
 
     await axios
-      .post(`../system.php?api=${api}`, formData)
-      .then(() => {
-        startRef.current.value = '';
-        endRef.current.value = '';
-        sotRef.current.value = '';
-        tvocRef.current.value = '';
-        pm10Ref.current.value = '';
-        pm25Ref.current.value = '';
-        co2Ref.current.value = '';
+      .post(`../system.php?api=${api}`, formData, {
+        headers: { Authorization: token },
       })
-      .catch(error => console.log(error));
+      .then((result) => {
+        if (result.data.error === "Expired token") {
+          localStorage.clear();
+          navigate("/login");
+        }
+        startRef.current.value = "";
+        endRef.current.value = "";
+        sotRef.current.value = "";
+        tvocRef.current.value = "";
+        pm10Ref.current.value = "";
+        pm25Ref.current.value = "";
+        co2Ref.current.value = "";
+      })
+      .catch((error) => console.log(error));
   };
 
   const handleChange = (event, newAlignment) => {

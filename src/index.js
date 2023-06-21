@@ -6,7 +6,7 @@ import './index.css';
 import App from './App';
 import axios from 'axios';
 
-// axios.defaults.baseURL = 'http://localhost/red/client';
+// axios.defaults.baseURL = 'http://localhost/php/client';
 axios.defaults.baseURL = 'https://iamredapple.com/php/client';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

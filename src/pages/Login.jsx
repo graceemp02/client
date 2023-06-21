@@ -7,6 +7,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ResetPasswordDialog from '../components/reset/ResetPasswordDialog';
+import FaDialog from "../components/fa/FaDialog";
 
 function Copyright(props) {
   return (
@@ -20,13 +21,13 @@ function Copyright(props) {
 const theme = createTheme();
 
 export default function Login() {
-  const user = localStorage.getItem('client_id');
-  const [dialog, setdialog] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+  const [email, setEmail] = useState();
   const [emailError, setEmailError] = useState(false);
   const [pwdError, setPwdError] = useState(false);
-
   const navigate = useNavigate();
-
+  const user = localStorage.getItem('client_id');
+  const [dialog, setdialog] = useState({ status: false });
   useEffect(() => {
     if (user) navigate('/');
   }, []);
@@ -42,8 +43,8 @@ export default function Login() {
       .then(result => {
         const res = result.data['res'];
         if (res === 'true') {
-          localStorage.setItem('client_id', result.data.id);
-          navigate('/');
+            setEmail(result.data.email);
+            setdialog({ status: true, body: "fa" });
         } else if (res === 'Password Incorrent') setPwdError(true);
         else {
           setEmailError(true);
@@ -52,81 +53,98 @@ export default function Login() {
       .catch(err => console.log(err));
   };
   const handleForgot = () => {
-    setdialog(true);
+    setdialog({ status: true, body: "pas" });
   };
   return (
-    <div className='loginContainer'>
+    <div className="loginContainer">
       <ThemeProvider theme={theme}>
-        <Container component='main' sx={{ px: '7px' }}>
+        <Container component="main" sx={{ px: "7px" }}>
           <CssBaseline />
           <Box
             sx={{
               marginTop: 8,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}>
-            <img src={Logo} alt='IamredApple Logo' className='logo' />
-            <Typography component='h1' sx={{ fontSize: '7vh' }}>
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <img src={Logo} alt="IamredApple Logo" className="logo" />
+            <Typography component="h1" sx={{ fontSize: "7vh" }}>
               Red Apple
             </Typography>
             <Box
-              component='form'
+              component="form"
               onSubmit={handleSubmit}
               noValidate
-              sx={{ marginBlock: '1vh', width: '100%' }}>
+              sx={{ marginBlock: "1vh", width: "100%" }}
+            >
               <TextField
                 error={emailError && true}
-                margin='normal'
+                margin="normal"
                 required
                 fullWidth
-                className='loginField'
-                id='email'
-                label='Email Address'
-                name='email'
-                type='email'
-                autoComplete='email'
+                className="loginField"
+                id="email"
+                label="Email Address"
+                name="email"
+                type="email"
+                autoComplete="email"
                 autoFocus
-                helperText={emailError && 'Invalid Email'}
+                helperText={emailError && "Invalid Email"}
               />
               <TextField
                 error={pwdError && true}
-                margin='normal'
+                margin="normal"
                 required
-                sx={{ marginBlock: '6vh' }}
+                sx={{ marginBlock: "6vh" }}
                 fullWidth
-                name='password'
-                className='loginField'
-                label='Password'
-                type='password'
-                id='password'
-                autoComplete='current-password'
-                helperText={pwdError && 'Password Incorrent'}
+                name="password"
+                className="loginField"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                helperText={pwdError && "Password Incorrent"}
               />
               <Grid container>
                 <Grid item xs>
                   <span></span>
                 </Grid>
                 <Grid item>
-                  <Link onClick={handleForgot} sx={{ cursor: 'pointer' }} variant='body2'>
+                  <Link
+                    onClick={handleForgot}
+                    sx={{ cursor: "pointer" }}
+                    variant="body2"
+                  >
                     Forgot password?
                   </Link>
                 </Grid>
               </Grid>
 
               <Button
-                type='submit'
-                className='loginField'
+                type="submit"
+                className="loginField"
                 fullWidth
-                variant='contained'
-                sx={{ my: '2vh' }}>
+                variant="contained"
+                sx={{ my: "2vh" }}
+              >
                 Login
               </Button>
             </Box>
           </Box>
-          <Copyright sx={{ mb: 4, position: 'absolute', bottom: 0, left: 0, right: 0 }} />
+          <Copyright
+            sx={{ mb: 4, position: "absolute", bottom: 0, left: 0, right: 0 }}
+          />
         </Container>
-        {dialog && <ResetPasswordDialog />}
+        {dialog.status && (
+          <>
+            {dialog.body === "pas" ? (
+              <ResetPasswordDialog />
+            ) : (
+              <FaDialog email={email} />
+            )}
+          </>
+        )}
       </ThemeProvider>
     </div>
   );
